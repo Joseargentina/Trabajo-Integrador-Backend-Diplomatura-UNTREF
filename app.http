@@ -1,0 +1,24 @@
+### Ruta principal
+GET http://localhost:3008/
+
+### Ruta para obtener todos los productos
+GET http://localhost:3008/productos
+
+### Ruta para obtener un producto por su ID
+GET http://localhost:3008/productos/id/66730b0cedc26e722ba34a90
+
+### Filtrar productos por nombre (búsqueda parcial)
+GET http://localhost:3008/productos/nombre/si
+
+### Agregar un nuevo producto 
+POST http://localhost:3008/productos
+Content-Type: application/json
+
+{
+  "nombre": "Sillon Gamer",
+  "precio": 220000,
+  "categoria": "Sala de estar"
+}
+
+### Eliminar un producto por su ID
+DELETE http://localhost:3008/productos/id/667430236f0c60e88e6bf14d
