@@ -93,16 +93,70 @@ app.post('/productos', async (req, res) => {
       res.status(404).send('Error al agregar el producto')
     }
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Error interno en el servidor' })
+    console.error('Error al agregar un producto:', err)
+    res.status(500).json({ message: 'Error interno en el seridor' })
+  }
+})
+
+// Modificar un producto parcialmente
+app.patch('/productos/parcial/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    if (!id) {
+      res.status(400).json({ message: 'Error se necesita un ID valido' })
+      return
+    }
+    const producto = await ProductModel.findByIdAndUpdate(id, req.body, { new: true })
+    producto
+      ? res.status(200).json({ message: 'Producto actualizado con éxito', producto })
+      : res.status(404).json({ message: 'No se encontró el producto' })
+  } catch (err) {
+    console.error('Error al obtener producto por ID:', err)
+    res.status(500).json({ message: 'Error interno en el seridor' })
+  }
+})
+
+// Modificar un producto completamente
+app.put('/productos/completa/:id', async (req, res) => {
+  const { id } = req.params
+  console.log(id)
+  try {
+    if (!id) {
+      res.status(400).json({ message: 'Error se necesita un ID valido' })
+      return
+    }
+    const productoActualizado = await ProductModel.findByIdAndUpdate(id, req.body, {
+      new: true,
+      overwrite: true
+    })
+    productoActualizado
+      ? res.status(200).json({ message: 'Producto actualizado completamente con éxito', productoActualizado })
+      : res.status(404).json({ message: 'No se encontró el producto para actualizar' })
+  } catch (err) {
+    console.error('Error al modificar el producto:', err)
+    res.status(500).json({ message: 'Error interno en el seridor' })
   }
 })
 
 // Eliminar un producto por su id
-
-// app.delete('/productos/id/:id', async (req,res)=> {
-
-// })
+app.delete('/productos/eliminar/:id', async (req, res) => {
+  const { id } = req.params
+  try {
+    if (!id) {
+      res.status(400).json({ message: 'Error se necesita un ID valido' })
+      return
+    }
+    const productoAeliminar = await ProductModel.findByIdAndDelete(id)
+    if (productoAeliminar) {
+      res.status(200).json({ message: 'Producto eliminado con éxito' })
+    } else {
+      res.status(404).json({ message: 'No se encontró el producto para eliminar' })
+    }
+  } catch (err) {
+    console.error('Error al eliminar el producto:', err)
+    res.status(500).json({ message: 'Error interno en el seridor' })
+  }
+})
 
 // Midleware para manejo de rutas incorrectas
 app.use((req, res, next) => {

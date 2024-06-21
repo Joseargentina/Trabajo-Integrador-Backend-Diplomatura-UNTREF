@@ -20,5 +20,26 @@ Content-Type: application/json
   "categoria": "Sala de estar"
 }
 
+### Modificar un producto parcialmente
+PATCH http://localhost:3008/productos/parcial/667430236f0c60e88e6bf14d
+Content-type: application/json
+
+{
+  "nombre": "Sillon Gamer TZ-10"
+}
+
+### Modificar un producto completamente
+
+PUT http://localhost:3008/productos/completa/667430236f0c60e88e6bf14d
+Content-type: application/json
+
+{
+  "nombre": "Sillon Gamer TZ-24",
+  "precio": 250000,
+  "categoria": "Sala de computacion"
+}
+
+
 ### Eliminar un producto por su ID
-DELETE http://localhost:3008/productos/id/667430236f0c60e88e6bf14d
+DELETE http://localhost:3008/productos/eliminar/667430236f0c60e88e6bf14d
+
