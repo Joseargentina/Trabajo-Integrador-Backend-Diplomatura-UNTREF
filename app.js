@@ -1,8 +1,13 @@
 import express from 'express'
+import jwt from 'jsonwebtoken'
 import morgan from 'morgan'
 import { connectDB } from './dataBase.js'
-import { ProductModel } from './product.js'
+import { ProductModel, UsuarioModel, validarUsuario, validarCredenciales } from './product.js'
+import bcrypt from 'bcrypt'
 connectDB()
+process.loadEnvFile()
+const SECRET_KEY = process.env.SECRET_KEY
+const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS) // parseo el numero  de SALT porque  las variables de entorno siempre se leen como cadenas de texto
 const PORT = process.env.PORT ?? 3000
 
 const app = express()
@@ -99,7 +104,7 @@ app.post('/productos', async (req, res) => {
 })
 
 // Modificar un producto parcialmente
-app.patch('/productos/parcial/:id', async (req, res) => {
+app.patch('/productos/:id', async (req, res) => {
   const { id } = req.params
   try {
     if (!id) {
@@ -117,7 +122,7 @@ app.patch('/productos/parcial/:id', async (req, res) => {
 })
 
 // Modificar un producto completamente
-app.put('/productos/completa/:id', async (req, res) => {
+app.put('/productos/:id', async (req, res) => {
   const { id } = req.params
   console.log(id)
   try {
@@ -158,6 +163,99 @@ app.delete('/productos/eliminar/:id', async (req, res) => {
   }
 })
 
+// ------ Ruta para el registro de usuario -------
+app.post('/registro', async (req, res) => {
+  const { usuario, email, contraseña } = req.body
+  console.log(usuario, email)
+  // Verificar si las credenciales son correctas
+  const resultadoValidacion = await validarUsuario({ usuario, email })
+  if (!resultadoValidacion.success) {
+    return res.status(400).json({ message: resultadoValidacion.error })
+  }
+
+  try {
+    // Generar el hash de la contraseña
+    const salt = await bcrypt.genSalt(SALT_ROUNDS)
+    const contraseñaHasheada = await bcrypt.hash(contraseña, salt)
+    const nuevoUsuario = new UsuarioModel({
+      usuario,
+      email,
+      contraseña: contraseñaHasheada // Asignar la contraseña hasheada
+    })
+    const usuarioRegistrado = await nuevoUsuario.save()
+    console.log(usuarioRegistrado.usuario)
+    if (usuarioRegistrado) {
+      // Crear un JWT con información relevante (por ejemplo, el ID del usuario)
+      const token = jwt.sign({ usuario: usuarioRegistrado._id }, SECRET_KEY, { expiresIn: '1h' })
+      return res.status(201).json({ message: 'Usuario registrado con éxito', token })
+    } else {
+      return res.status(404).send('Error al registrar el usuario')
+    }
+  } catch (error) {
+    console.error(error) // Mantén el registro del error en el servidor
+    return res.status(500).send({ error: 'Error interno en el servidor' })
+  }
+})
+
+// Ruta para login de usuario
+app.post('/login', async (req, res) => {
+  const { usuario, contraseña } = req.body
+  try {
+    // Verificar si las credenciales son correctas
+    const resultadoValidacion = await validarCredenciales(usuario, contraseña)
+    if (!resultadoValidacion.success) {
+      return res.status(400).json({ message: resultadoValidacion.error })
+    }
+    // Si las credenciales son válidas, generar un token
+    const token = jwt.sign({ usuario }, SECRET_KEY, { expiresIn: '1h' })
+    return res.json({ message: `Usuario ${usuario} logueado con exito`, token })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).send({ error: 'Error interno del servidor' })
+  }
+})
+
+// Midleware para verificar el Token JWT
+const verifyToken = (req, res, next) => {
+  const token = req.headers['x-access-token'] || req.headers.authorization
+  if (!token) {
+    return res.status(401).json({ error: 'Ningun token provisto' })
+  }
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ error: 'Token inválido' })
+    }
+
+    req.decoded = decoded
+    next()
+  })
+}
+
+// -------- Rutas Protegidas -------------
+app.get('/perfil', verifyToken, (req, res) => {
+  res.status(200).json({ message: `Bienvenido a tu perfil ${req.decoded.usuario}` })
+})
+
+// Ruta protegida para obtener todos los usuarios
+app.get('/usuarios', verifyToken, async (req, res) => {
+  try {
+    const usuarios = await UsuarioModel.find()
+
+    if (usuarios.length > 0) {
+      res.status(200).json({
+        message: 'Bienvenido a la ruta protegida de Inmobiliaria, estos son los usuarios registrados',
+        usuarios
+      })
+    } else {
+      res.status(404).json({ message: 'No se encontraron  usuarios' })
+    }
+  } catch (err) {
+    console.error('Error al traer los productos y usuarios:', err)
+    res.status(500).json({ message: 'Error interno en el servidor' })
+  }
+})
+
 // Midleware para manejo de rutas incorrectas
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Ruta no encontrada' })
@@ -166,3 +264,9 @@ app.use((req, res, next) => {
 app.listen(PORT, (req, res) => {
   console.log(`Server running on http://localhost:${PORT}`)
 })
+
+// Middleware global para manejo de errores
+// app.use((err, req, res, next) => {
+//   console.error(err.stack)
+//   res.status(500).json({ message: 'Error interno en el servidor' })
+// })

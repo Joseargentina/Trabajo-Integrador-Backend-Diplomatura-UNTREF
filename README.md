@@ -1,75 +1,147 @@
 # Proyecto Integrador: CRUD con Node.js y MongoDB
 
+## Alumno: José Barone
+
 ## Descripción del Proyecto
 
-En este proyecto, desarrollarás una aplicación basada en Node.js y MongoDB que permita realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) en una base de datos. La base de datos MongoDB deberá estar generada en el clúster de mongodb.com y tu aplicación Node.js se conectará a ella.
+Este proyecto desarrolla una aplicación basada en Node.js y MongoDB que permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) en una base de datos de mobiliarios. Además, utilizamos MongoDB Compass para visualizar y administrar los datos de manera eficiente.
 
-Podrás usar alguno de los datasets JSON proporcionados, o crear uno propio que contenga entre 20 y 30 productos, distribuidos en varias categorías.
+## Dependencias
 
-## Datasets Proporcionados
+Las dependencias utilizadas en este proyecto son:
 
-- **computacion.json**: Productos de computación, partes, accesorios y repuestos.
-- **electronicos.json**: Productos electrónicos de consumo.
-- **granjas.json**: Frutas y verduras.
-- **mobiliario.json**: Muebles de hogar y oficina.
-- **prendas.json**: Prendas de vestir.
-- **supermercado.json**: Productos de supermercado.
+- **express**: Un framework minimalista para aplicaciones web en Node.js.
+- **morgan**: Un middleware de registro de solicitudes HTTP.
+- **jsonwebtoken**: Para la autenticación basada en tokens JWT.
+- **mongoose**: Una biblioteca de modelado de datos para MongoDB y Node.js.
+- **bcrypt**: Biblioteca para hash de contraseñas.
+
+Las dependencias de desarrollo instaladas son:
+
+- **standard**: Un linter de JavaScript que utiliza la configuración de estilo de codificación estándar.
+
+## Instrucciones para correr el proyecto
+
+### Prerrequisitos
+
+Antes de empezar, asegúrate de tener instalado Node.js y MongoDB en tu máquina. Si no los tienes, puedes descargarlos e instalarlos desde los siguientes enlaces:
+
+- [Node.js](https://nodejs.org/)
+- [MongoDB](https://www.mongodb.com/)
+
+### Uso de MongoDB Compass
+
+Para visualizar y administrar los datos en tu base de datos MongoDB, utiliza [MongoDB Compass](https://www.mongodb.com/products/compass).
+
+### Instalación
+
+1. **Fork del Repositorio**:
+
+   - Haz un fork de este repositorio en tu cuenta de GitHub.
+
+2. **Clonar el Repositorio**:
+
+   - Clona el repositorio forkeado a tu máquina local.
+     ```bash
+     git clone https://github.com/tu-usuario/nombre-del-repositorio.git
+     ```
+
+3. **Instalar Dependencias**:
+
+   - Navega al directorio del proyecto y ejecuta el siguiente comando para instalar las dependencias necesarias:
+     ```bash
+     npm install
+     ```
+
+### Configuración
+
+1. Crea un archivo `.env` en la raíz del proyecto y agrega las siguientes variables de entorno:
+
+     ```env
+    PORT=3008
+    MONGODB_URISTRING=mongodb+srv://tunombredeusuario:contraseña@nosqldatabase.xwwhxd3.mongodb.net/
+    DATABASE_NAME=nombre_de_la_base_de_datos
+    COLLECTION_NAME_1=nombre_de_la_coleccion_1
+    COLLECTION_NAME_2=nombre_de_la_coleccion_2
+    SALT_ROUNDS=numero_de_salt_rounds
+    SECRET_KEY=tu_clave_secreta
+    ```
+
+    - `PORT`: El puerto en el que se ejecutará la aplicación.
+    - `MONGODB_URISTRING`: La URI de conexión a tu base de datos MongoDB.
+    - `DATABASE_NAME`: El nombre de la base de datos.
+    - `COLLECTION_NAME_1`: El nombre de la colección 1.
+    - `COLLECTION_NAME_2`: El nombre de la colección 2.
+    - `SALT_ROUNDS`: Un número que representa las vueltas de salt para bcrypt.
+    - `SECRET_KEY`: Una clave secreta para la firma de los tokens JWT.
+
+### Configuración del `package.json`
+
+- `"type": "module"`: Esto permite el uso de módulos ES en lugar de CommonJS.
+- `"scripts"`: Define los comandos para iniciar el servidor.
+  - `"start": "node --watch app.js"`: Este comando inicia el servidor y lo reinicia automáticamente cuando hay cambios en el archivo `app.js`.
+- `"eslintConfig"`: Configuración de ESLint.
+  - `"extends": "standard"`: Utiliza la configuración de standard para ESLint.
+
+### Ejecutar el Proyecto
+
+1. Inicia el servidor:
+
+    ```bash
+    npm start
+    ```
+
+    Esto iniciará la aplicación en el puerto especificado (por defecto, 3008). Puedes acceder a la aplicación en tu navegador en `http://localhost:3008`.
 
 ## Funcionalidades del CRUD
 
 1. **Obtener todos los productos**
-   - Endpoint para leer todos los productos de la colección.
-   - Control de errores para manejar la indisponibilidad de la base de datos.
+   - Endpoint: `GET /productos`
+   - Descripción: Obtiene todos los productos de la colección.
 
-2. **Obtener un producto**
-   - Endpoint para obtener un producto por su ID.
-   - Control de errores para manejar casos en que el producto no se encuentre o la base de datos no esté disponible.
+2. **Obtener un producto por su ID**
+   - Endpoint: `GET /productos/id/:id`
+   - Descripción: Obtiene un producto por su ID.
 
 3. **Filtrar productos**
-   - Endpoint para filtrar productos por nombre (búsqueda parcial).
-   - Control de errores para manejar coincidencias no encontradas o problemas de conexión.
+   - Endpoint: `GET /productos/nombre/:nombre`
+   - Descripción: Filtra productos por nombre (búsqueda parcial).
 
 4. **Agregar un nuevo producto**
-   - Endpoint para agregar un nuevo producto.
-   - Validación y control de errores.
-   - Generación de un código numérico para el nuevo producto.
+   - Endpoint: `POST /productos`
+   - Descripción: Agrega un nuevo producto.
 
 5. **Modificar el precio de un producto**
-   - Endpoint para cambiar el precio de un producto usando PATCH.
-   - Control de errores para manejar problemas durante la actualización.
-     
-6. **Borrar un producto**
-   - Endpoint para borrar un producto usando DELETE.
-   - Control de errores para manejar problemas durante el borrado.
+   - Endpoint: `PATCH /productos/:id`
+   - Descripción: Modifica el precio de un producto usando PATCH.
 
-7. **Control de errores**
-   - Manejo de errores en la estructura de las solicitudes y respuestas.
-   - Respuesta adecuada con mensajes y códigos de error específicos.
-   - Control de acceso a rutas no existentes con respuestas apropiadas.
+6. **Modificar un producto completamente**
+   - Endpoint: `PUT /productos/:id`
+   - Descripción: Modifica un producto completamente usando PUT.
 
-## Fechas Importantes
+7. **Borrar un producto**
+   - Endpoint: `DELETE /productos/eliminar/:id`
+   - Descripción: Elimina un producto usando DELETE.
 
-- **Avance del Proyecto**: 11 de julio de 2024
-  - Tener listos los endpoints básicos, el control de rutas inexistentes, la conexión con MongoDB y los métodos GET funcionando.
+### Funcionalidades adicionales
 
-- **Presentación Final**: 30 de julio de 2024
-  - Proyecto 100% funcional.
+1. **Registrar un usuario**
+   - Endpoint: `POST /registro`
+   - Descripción: Registra a un nuevo usuario.
 
-## Estructura del Repositorio
+2. **Login de usuario**
+   - Endpoint: `POST /login`
+   - Descripción: Logea a un usuario y devuelve un token JWT.
 
-```plaintext
-/json
-  - computacion.json
-  - electronicos.json
-  - granjas.json
-  - mobiliario.json
-  - prendas.json
-  - supermercado.json
-/README.md
-/app.js
-/database.js
-/product.js
-```
+3. **Verificar el Token JWT**
+   - Middleware: `verifyToken`
+   - Descripción: Verifica si el token JWT es válido.
+
+4. **Rutas protegidas**
+   - Endpoint: `GET /perfil`
+     - Descripción: Muestra el perfil del usuario si el token es válido.
+   - Endpoint: `GET /usuarios`
+     - Descripción: Muestra la lista de todos los usuarios registrados si el token es válido.
 
 ### Descripción de Archivos
 
@@ -77,33 +149,10 @@ Podrás usar alguno de los datasets JSON proporcionados, o crear uno propio que 
 - **/README.md**: Archivo con la descripción del proyecto.
 - **/app.js**: Archivo principal de la aplicación Node.js donde se define toda la lógica de rutas y la conexión a la base de datos.
 - **/database.js**: Archivo para configurar la conexión a la base de datos MongoDB.
-- **/product.js**: Archivo que contiene el esquema (schema) del producto utilizando Mongoose.
+- **/product.js**: Archivo que contiene el esquema (schema) del producto y el esquema de usuario utilizando Mongoose. Además, incluye funciones para validar al usuario y validar las credenciales.
 
-## Instrucciones de Entrega
+## Autor
 
-1. **Fork** el repositorio desde [aquí](https://github.com/FabioDrizZt/Trabajo-Integrador-Backend-Diplomatura-UNTREF/fork).
-2. **Clona** tu fork en tu máquina local.
-   ```bash
-   git clone https://github.com/tu-usuario/tu-repositorio-fork.git
-   ```
-3. Realiza los cambios y sube tu código a tu fork.
-4. **Sube** los cambios a tu fork.
-   ```bash
-   git add .
-   git commit -m "Descripción de los cambios"
-   git push origin main
-   ```
+Este proyecto fue creado por José Barone. Este es el link del trabajo en GitHub:
 
-5. Agrega a los siguientes usuarios como colaboradores en tu repositorio:
-   - [FabioDrizZt](https://github.com/FabioDrizZt)
-   - [JuanNebbia](https://github.com/JuanNebbia)
-   - [NKrein](https://github.com/NKrein)
-   - [mathiasbarbosa](https://github.com/mathiasbarbosa)
-
-## Conclusión
-
-Este proyecto te permitirá aplicar tus conocimientos en desarrollo backend con Node.js y MongoDB, implementando un CRUD completo con control de errores y buenas prácticas. ¡Buena suerte y adelante con el desarrollo!
-
----
-
-Recuerda mantener tu código limpio, documentado y seguir las buenas prácticas de desarrollo. ¡Nos vemos en clase para revisar tu progreso el 11 de julio de 2024!
+- [GitHub](https://github.com/Joseargentina/Trabajo-Integrador-Backend-Diplomatura-UNTREF)

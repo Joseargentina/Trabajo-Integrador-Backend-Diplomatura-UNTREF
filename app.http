@@ -5,7 +5,7 @@ GET http://localhost:3008/
 GET http://localhost:3008/productos
 
 ### Ruta para obtener un producto por su ID
-GET http://localhost:3008/productos/id/66730b0cedc26e722ba34a90
+GET http://localhost:3008/productos/id/66730b0cedc26e722ba34a8f
 
 ### Filtrar productos por nombre (búsqueda parcial)
 GET http://localhost:3008/productos/nombre/si
@@ -15,31 +15,58 @@ POST http://localhost:3008/productos
 Content-Type: application/json
 
 {
-  "nombre": "Sillon Gamer",
-  "precio": 220000,
+  "nombre": "Sillon Gamer TZ-E-024",
+  "precio": 220500,
   "categoria": "Sala de estar"
 }
 
-### Modificar un producto parcialmente
-PATCH http://localhost:3008/productos/parcial/667430236f0c60e88e6bf14d
+### Modificar el precio de  un producto parcialmente (PATCH)
+PATCH http://localhost:3008/productos/66834a65f8b666327c8ff5cd
 Content-type: application/json
 
 {
-  "nombre": "Sillon Gamer TZ-10"
+  "precio": "7777"
 }
 
-### Modificar un producto completamente
-
-PUT http://localhost:3008/productos/completa/667430236f0c60e88e6bf14d
+### Modificar un producto completamente (PUT)
+PUT http://localhost:3008/productos/66834a65f8b666327c8ff5cd
 Content-type: application/json
 
 {
-  "nombre": "Sillon Gamer TZ-24",
+  "nombre": "Sillon Gamer TZ-023",
   "precio": 250000,
   "categoria": "Sala de computacion"
 }
 
 
 ### Eliminar un producto por su ID
-DELETE http://localhost:3008/productos/eliminar/667430236f0c60e88e6bf14d
+DELETE http://localhost:3008/productos/eliminar/668349e50c443b616331ec75
 
+
+### Rutas ADICIONALES
+### Ruta para registrar a un usuario
+POST http://localhost:3008/registro
+Content-Type: application/json
+
+{
+        "usuario": "Maria Estevez",
+        "contraseña": "f2CbFN4",
+        "email": "maria8@example.com"
+}
+
+### Ruta para logear a un usuario
+POST http://localhost:3008/login
+Content-Type: application/json
+
+{
+        "usuario": "Pedro Gonzalez",
+        "contraseña": "A3CVFN1"
+}
+
+### Ruta protegida
+GET http://localhost:3008/perfil
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjoiUGVkcm8gR29uemFsZXoiLCJpYXQiOjE3MTk4ODA3ODEsImV4cCI6MTcxOTg4NDM4MX0.rvsWWWmzLZORQfJ9elsHPFo9wGxN9Jqpu8eL06yQZJk
+
+### Ruta para obtener todos los usuarios
+GET http://localhost:3008/usuarios
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjoiUGVkcm8gR29uemFsZXoiLCJpYXQiOjE3MTk4ODA3ODEsImV4cCI6MTcxOTg4NDM4MX0.rvsWWWmzLZORQfJ9elsHPFo9wGxN9Jqpu8eL06yQZJk

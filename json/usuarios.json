@@ -1,0 +1,32 @@
+[
+    {
+        "usuario": "Ana Garcia",
+        "contraseña": "1343A4E",
+        "email": "ana@example.com"
+    },
+    {
+        "usuario": "Juan Perez",
+        "contraseña": "m2BVFG4",
+        "email": "juan@example.com"
+    },
+    {
+        "usuario": "Maria Rodriguez",
+        "contraseña": "82BBFT4",
+        "email": "maria@example.com"
+    },
+    {
+        "usuario": "Carlos Sanchez",
+        "contraseña": "92B3F47",
+        "email": "carlos@example.com"
+    },
+    {
+        "usuario": "Laura Martinez",
+        "contraseña": "m7BCNU8",
+        "email": "laura@example.com"
+    },
+    {
+        "usuario": "Pedro Gonzalez",
+        "contraseña": "A3CVFN1",
+        "email": "pedro@example.com"
+    }
+]
