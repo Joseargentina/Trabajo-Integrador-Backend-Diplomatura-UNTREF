@@ -15,7 +15,7 @@ POST http://localhost:3008/productos
 Content-Type: application/json
 
 {
-  "nombre": "Sillon Gamer TZ-E-024",
+  "nombre": "Sillon Gamer TZ-E-0244",
   "precio": 220500,
   "categoria": "Sala de estar"
 }
@@ -49,9 +49,9 @@ POST http://localhost:3008/registro
 Content-Type: application/json
 
 {
-        "usuario": "Maria Estevez",
-        "contraseña": "f2CbFN4",
-        "email": "maria8@example.com"
+        "usuario": "Facundo Miranda",
+        "contraseña": "z33bFN4",
+        "email": "facundo@example.com"
 }
 
 ### Ruta para logear a un usuario
@@ -65,8 +65,7 @@ Content-Type: application/json
 
 ### Ruta protegida
 GET http://localhost:3008/perfil
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjoiUGVkcm8gR29uemFsZXoiLCJpYXQiOjE3MTk4ODA3ODEsImV4cCI6MTcxOTg4NDM4MX0.rvsWWWmzLZORQfJ9elsHPFo9wGxN9Jqpu8eL06yQZJk
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjoiUGVkcm8gR29uemFsZXoiLCJpYXQiOjE3MjA2NDQxMTAsImV4cCI6MTcyMDY0NzcxMH0.z-GiUDbQTnJSBkUpjvAuCo-Hgp2HO85RsQz-ocK4tME
 
-### Ruta para obtener todos los usuarios
-GET http://localhost:3008/usuarios
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjoiUGVkcm8gR29uemFsZXoiLCJpYXQiOjE3MTk4ODA3ODEsImV4cCI6MTcxOTg4NDM4MX0.rvsWWWmzLZORQfJ9elsHPFo9wGxN9Jqpu8eL06yQZJk
+### Cerrar session
+POST http://localhost:3008/logout

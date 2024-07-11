@@ -4,6 +4,7 @@ import morgan from 'morgan'
 import { connectDB } from './dataBase.js'
 import { ProductModel, UsuarioModel, validarUsuario, validarCredenciales } from './product.js'
 import bcrypt from 'bcrypt'
+import cookieParser from 'cookie-parser'
 connectDB()
 process.loadEnvFile()
 const SECRET_KEY = process.env.SECRET_KEY
@@ -16,6 +17,23 @@ app.use(morgan('dev'))
 
 // Midleware para parsear JSON
 app.use(express.json())
+// Midleware para parsar cookies
+app.use(cookieParser())
+
+// Middleware para verificar el token JWT en las cookies y almacenar los datos del usuario en la sesión
+app.use((req, res, next) => {
+  const token = req.cookies.access_token
+  req.session = { user: null }
+
+  try {
+    const data = jwt.verify(token, SECRET_KEY)
+    req.session.user = data
+  } catch (error) {
+    console.error('Error verifying JWT token:', error)
+  }
+
+  next()
+})
 
 app.get('/', (req, res) => {
   res.send('¡Bienvenido a mi API de inmobiliaria!')
@@ -44,6 +62,7 @@ app.get('/productos/id/:id', async (req, res) => {
     }
     const producto = await ProductModel.findById(id)
     if (producto) return res.status(200).json({ message: 'Producto encontrado', producto })
+    res.status(404).json({ message: 'Producto no encontrado' })
   } catch (err) {
     console.error('Error al obtener producto:', err)
     res.status(500).json({ message: 'Error interno en el seridor' })
@@ -153,13 +172,13 @@ app.delete('/productos/eliminar/:id', async (req, res) => {
     }
     const productoAeliminar = await ProductModel.findByIdAndDelete(id)
     if (productoAeliminar) {
-      res.status(200).json({ message: 'Producto eliminado con éxito' })
+      res.status(204).json({ message: 'Producto eliminado con éxito' })
     } else {
       res.status(404).json({ message: 'No se encontró el producto para eliminar' })
     }
   } catch (err) {
     console.error('Error al eliminar el producto:', err)
-    res.status(500).json({ message: 'Error interno en el seridor' })
+    res.status(500).json({ message: 'Error interno en el servidor' })
   }
 })
 
@@ -187,7 +206,12 @@ app.post('/registro', async (req, res) => {
     if (usuarioRegistrado) {
       // Crear un JWT con información relevante (por ejemplo, el ID del usuario)
       const token = jwt.sign({ usuario: usuarioRegistrado._id }, SECRET_KEY, { expiresIn: '1h' })
-      return res.status(201).json({ message: 'Usuario registrado con éxito', token })
+      res.cookie('access_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 1000 * 60 * 60
+      }).status(201).json({ message: 'Usuario registrado con éxito', token })
     } else {
       return res.status(404).send('Error al registrar el usuario')
     }
@@ -208,52 +232,33 @@ app.post('/login', async (req, res) => {
     }
     // Si las credenciales son válidas, generar un token
     const token = jwt.sign({ usuario }, SECRET_KEY, { expiresIn: '1h' })
-    return res.json({ message: `Usuario ${usuario} logueado con exito`, token })
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 1000 * 60 * 60
+    }).json({ message: `Usuario ${usuario} logueado con éxito`, token })
   } catch (error) {
     console.error(error)
     return res.status(500).send({ error: 'Error interno del servidor' })
   }
 })
 
-// Midleware para verificar el Token JWT
-const verifyToken = (req, res, next) => {
-  const token = req.headers['x-access-token'] || req.headers.authorization
-  if (!token) {
-    return res.status(401).json({ error: 'Ningun token provisto' })
-  }
-
-  jwt.verify(token, SECRET_KEY, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ error: 'Token inválido' })
-    }
-
-    req.decoded = decoded
-    next()
-  })
-}
-
-// -------- Rutas Protegidas -------------
-app.get('/perfil', verifyToken, (req, res) => {
-  res.status(200).json({ message: `Bienvenido a tu perfil ${req.decoded.usuario}` })
+app.post('/logout', (req, res) => {
+  res.clearCookie('access_token').send({ message: 'Logout Successful' })
 })
 
-// Ruta protegida para obtener todos los usuarios
-app.get('/usuarios', verifyToken, async (req, res) => {
-  try {
-    const usuarios = await UsuarioModel.find()
-
-    if (usuarios.length > 0) {
-      res.status(200).json({
-        message: 'Bienvenido a la ruta protegida de Inmobiliaria, estos son los usuarios registrados',
-        usuarios
-      })
-    } else {
-      res.status(404).json({ message: 'No se encontraron  usuarios' })
-    }
-  } catch (err) {
-    console.error('Error al traer los productos y usuarios:', err)
-    res.status(500).json({ message: 'Error interno en el servidor' })
+// Middleware para manejar rutas protegidas
+const verifyToken = (req, res, next) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Acceso no autorizado' })
   }
+  next()
+}
+
+// -------- Ruta Protegida -------------
+app.get('/perfil', verifyToken, (req, res) => {
+  res.status(200).json({ message: `Bienvenido a tu perfil, ${req.session.user.usuario}` })
 })
 
 // Midleware para manejo de rutas incorrectas
