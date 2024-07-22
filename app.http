@@ -5,7 +5,7 @@ GET http://localhost:3008/
 GET http://localhost:3008/productos
 
 ### Ruta para obtener un producto por su ID
-GET http://localhost:3008/productos/id/66730b0cedc26e722ba34a8f
+GET http://localhost:3008/productos/id/6675f18850635bfaa44b8b0f
 
 ### Filtrar productos por nombre (búsqueda parcial)
 GET http://localhost:3008/productos/nombre/si
@@ -15,32 +15,33 @@ POST http://localhost:3008/productos
 Content-Type: application/json
 
 {
-  "nombre": "Sillon Gamer TZ-E-0244",
-  "precio": 220500,
-  "categoria": "Sala de estar"
+  "nombre": "Mesa de luz",
+  "precio": 250000,
+  "categoria": "Dormitorio"
 }
 
 ### Modificar el precio de  un producto parcialmente (PATCH)
-PATCH http://localhost:3008/productos/66834a65f8b666327c8ff5cd
+PATCH http://localhost:3008/productos/66965d46af9d17f541ce5ba0
 Content-type: application/json
 
 {
-  "precio": "7777"
+  "precio": "7757"
 }
 
 ### Modificar un producto completamente (PUT)
-PUT http://localhost:3008/productos/66834a65f8b666327c8ff5cd
+PUT http://localhost:3008/productos/66965d46af9d17f541ce5ba0
 Content-type: application/json
 
 {
-  "nombre": "Sillon Gamer TZ-023",
-  "precio": 250000,
+  "codigo": 35,
+  "nombre": "Sillon Gamer TZ-011",
+  "precio": 355000,
   "categoria": "Sala de computacion"
 }
 
 
 ### Eliminar un producto por su ID
-DELETE http://localhost:3008/productos/eliminar/668349e50c443b616331ec75
+DELETE http://localhost:3008/productos/eliminar/669679de81493a4454ad22cc
 
 
 ### Rutas ADICIONALES
@@ -49,9 +50,9 @@ POST http://localhost:3008/registro
 Content-Type: application/json
 
 {
-        "usuario": "Facundo Miranda",
-        "contraseña": "z33bFN4",
-        "email": "facundo@example.com"
+        "usuario": "Matias",
+        "contraseña": "1234567",
+        "email": "matu@gmail.com"
 }
 
 ### Ruta para logear a un usuario
@@ -65,7 +66,6 @@ Content-Type: application/json
 
 ### Ruta protegida
 GET http://localhost:3008/perfil
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjoiUGVkcm8gR29uemFsZXoiLCJpYXQiOjE3MjA2NDQxMTAsImV4cCI6MTcyMDY0NzcxMH0.z-GiUDbQTnJSBkUpjvAuCo-Hgp2HO85RsQz-ocK4tME
 
 ### Cerrar session
 POST http://localhost:3008/logout

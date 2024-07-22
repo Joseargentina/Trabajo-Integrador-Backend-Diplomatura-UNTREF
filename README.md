@@ -13,7 +13,11 @@ Las dependencias utilizadas en este proyecto son:
 - **express**: Un framework minimalista para aplicaciones web en Node.js.
 - **morgan**: Un middleware de registro de solicitudes HTTP.
 - **jsonwebtoken**: Para la autenticación basada en tokens JWT.
+- **body-parser**: Parsea los cuerpos de las solicitudes entrantes en un middleware antes de que los maneje su aplicación.
+- **cookie-parser**: Parsea las cookies adjuntas a las solicitudes HTTP.
 - **mongoose**: Una biblioteca de modelado de datos para MongoDB y Node.js.
+- **ejs**: Biblioteca de motores de plantillas.
+- **method-override**: Permite usar métodos HTTP como PUT o DELETE en lugares donde el cliente no los soporta nativamente.
 - **bcrypt**: Biblioteca para hash de contraseñas.
 
 Las dependencias de desarrollo instaladas son:
@@ -150,6 +154,11 @@ Para visualizar y administrar los datos en tu base de datos MongoDB, utiliza [Mo
 - **/app.js**: Archivo principal de la aplicación Node.js donde se define toda la lógica de rutas y la conexión a la base de datos.
 - **/database.js**: Archivo para configurar la conexión a la base de datos MongoDB.
 - **/product.js**: Archivo que contiene el esquema (schema) del producto y el esquema de usuario utilizando Mongoose. Además, incluye funciones para validar al usuario y validar las credenciales.
+- **views**: Carpeta que contiene las vistas para el registro, login, perfil de usuario y 404.
+
+### Explicación de cómo funciona el proyecto
+
+Es una aplicación hecha con Node.js y Express que realiza un CRUD a una base de datos MongoDB, conectada a través de Mongoose. Además de las funcionalidades básicas del CRUD, incluye vistas y rutas para el registro y login de usuarios, con rutas protegidas para acceder al perfil de usuario y al listado de productos. Los usuarios pueden registrarse, iniciar sesión, ver productos y cerrar sesión.
 
 ## Autor
 

@@ -5,40 +5,63 @@ import { connectDB } from './dataBase.js'
 import { ProductModel, UsuarioModel, validarUsuario, validarCredenciales } from './product.js'
 import bcrypt from 'bcrypt'
 import cookieParser from 'cookie-parser'
-connectDB()
+import bodyParser from 'body-parser'
+import methodOverride from 'method-override'
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
+
 process.loadEnvFile()
 const SECRET_KEY = process.env.SECRET_KEY
-const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS) // parseo el numero  de SALT porque  las variables de entorno siempre se leen como cadenas de texto
+const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS) // parseo el numero de SALT porque las variables de entorno siempre se leen como cadenas de texto
 const PORT = process.env.PORT ?? 3000
 
 const app = express()
 app.disable('x-powered-by')
 app.use(morgan('dev'))
 
-// Midleware para parsear JSON
+connectDB() // Conectar a la base de datos
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+app.set('view engine', 'ejs')
+app.set('views', `${__dirname}/views`)
+
+// Middlewares
 app.use(express.json())
-// Midleware para parsar cookies
 app.use(cookieParser())
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(methodOverride('_method'))
 
 // Middleware para verificar el token JWT en las cookies y almacenar los datos del usuario en la sesión
 app.use((req, res, next) => {
   const token = req.cookies.access_token
   req.session = { user: null }
 
+  if (!token) {
+    console.log('No JWT token provided')
+    return next()
+  }
+
   try {
     const data = jwt.verify(token, SECRET_KEY)
+    // Si la verificación es exitosa, almacena los datos decodificados en req.session.user
     req.session.user = data
   } catch (error) {
     console.error('Error verifying JWT token:', error)
+    return res.status(401).json({ error: 'Token inválido o no proporcionado' })
   }
 
   next()
 })
 
+// Ruta Raíz
 app.get('/', (req, res) => {
-  res.send('¡Bienvenido a mi API de inmobiliaria!')
+  res.render('index', { title: '¡Bienvenido a mi API de inmobiliaria!' })
 })
 
+// -------Rutas CRUD para productos------------
 // Ruta para obtener todos los productos
 app.get('/productos', async (req, res) => {
   try {
@@ -52,24 +75,20 @@ app.get('/productos', async (req, res) => {
   }
 })
 
-// Ruta para obtener un producto por su ID
+// Busca un producto por su ID
 app.get('/productos/id/:id', async (req, res) => {
   const { id } = req.params
   try {
-    if (!id) {
-      res.status(400).json({ message: 'ID de producto no proporcionado' })
-      return
-    }
     const producto = await ProductModel.findById(id)
     if (producto) return res.status(200).json({ message: 'Producto encontrado', producto })
     res.status(404).json({ message: 'Producto no encontrado' })
   } catch (err) {
     console.error('Error al obtener producto:', err)
-    res.status(500).json({ message: 'Error interno en el seridor' })
+    res.status(500).json({ message: 'Error interno en el servidor' })
   }
 })
 
-// Ruta para filtrar productos por nombre (busqueda parcial)
+// Filtrar productos por su nombre (busqueda parcial)
 app.get('/productos/nombre/:nombre', async (req, res) => {
   const { nombre } = req.params
   try {
@@ -80,11 +99,9 @@ app.get('/productos/nombre/:nombre', async (req, res) => {
     // Usar una expresión regular para buscar nombres que contengan la parte específica
     const query = { nombre: { $regex: `^${nombre}`, $options: 'i' } }
     const productosEncontrados = await ProductModel.find(query)
-    if (productosEncontrados) {
-      res.status(200).json({ message: 'Productos encontrados: ', productosEncontrados })
-    } else {
-      return res.status(404).json({ message: 'No se encontraron productos con ese nombre' })
-    }
+    !productosEncontrados
+      ? res.status(404).json({ message: 'No se encontraron productos con ese nombre' })
+      : res.status(200).json({ message: 'Productos encontrados', productosEncontrados })
   } catch (err) {
     console.error(err)
     res.status(500).json({ message: 'Error interno en el seridor' })
@@ -122,7 +139,7 @@ app.post('/productos', async (req, res) => {
   }
 })
 
-// Modificar un producto parcialmente
+// Modificar parcialmente un producto
 app.patch('/productos/:id', async (req, res) => {
   const { id } = req.params
   try {
@@ -131,19 +148,19 @@ app.patch('/productos/:id', async (req, res) => {
       return
     }
     const producto = await ProductModel.findByIdAndUpdate(id, req.body, { new: true })
-    producto
-      ? res.status(200).json({ message: 'Producto actualizado con éxito', producto })
-      : res.status(404).json({ message: 'No se encontró el producto' })
+    if (!producto) {
+      return res.status(404).json({ message: 'No se encontró el producto' })
+    }
+    res.status(200).json({ message: 'Producto actualizado con éxito', producto })
   } catch (err) {
     console.error('Error al obtener producto por ID:', err)
     res.status(500).json({ message: 'Error interno en el seridor' })
   }
 })
 
-// Modificar un producto completamente
+// Modificar completamente un producto
 app.put('/productos/:id', async (req, res) => {
   const { id } = req.params
-  console.log(id)
   try {
     if (!id) {
       res.status(400).json({ message: 'Error se necesita un ID valido' })
@@ -153,9 +170,9 @@ app.put('/productos/:id', async (req, res) => {
       new: true,
       overwrite: true
     })
-    productoActualizado
-      ? res.status(200).json({ message: 'Producto actualizado completamente con éxito', productoActualizado })
-      : res.status(404).json({ message: 'No se encontró el producto para actualizar' })
+    !productoActualizado
+      ? res.status(404).json({ message: 'No se encontró el producto para actualizar' })
+      : res.status(200).json({ message: 'Producto actualizado completamente con éxito', productoActualizado })
   } catch (err) {
     console.error('Error al modificar el producto:', err)
     res.status(500).json({ message: 'Error interno en el seridor' })
@@ -171,21 +188,26 @@ app.delete('/productos/eliminar/:id', async (req, res) => {
       return
     }
     const productoAeliminar = await ProductModel.findByIdAndDelete(id)
-    if (productoAeliminar) {
-      res.status(204).json({ message: 'Producto eliminado con éxito' })
-    } else {
-      res.status(404).json({ message: 'No se encontró el producto para eliminar' })
-    }
+    !productoAeliminar
+      ? res.status(404).json({ message: 'No se encontró el producto para eliminar' })
+      : res.status(200).json({ message: 'Producto eliminado con éxito' })
   } catch (err) {
     console.error('Error al eliminar el producto:', err)
     res.status(500).json({ message: 'Error interno en el servidor' })
   }
 })
 
-// ------ Ruta para el registro de usuario -------
+// -------- Rutas para el registro de usuario ---------
+app.get('/registro', (req, res) => {
+  res.render('registro')
+})
 app.post('/registro', async (req, res) => {
   const { usuario, email, contraseña } = req.body
-  console.log(usuario, email)
+
+  // Verificar si todos los campos están completos
+  if (!usuario || !email || !contraseña) {
+    return res.render('registro', { error: 'Todos los campos son obligatorios' })
+  }
   // Verificar si las credenciales son correctas
   const resultadoValidacion = await validarUsuario({ usuario, email })
   if (!resultadoValidacion.success) {
@@ -211,9 +233,10 @@ app.post('/registro', async (req, res) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: 1000 * 60 * 60
-      }).status(201).json({ message: 'Usuario registrado con éxito', token })
+      })
+      return res.status(201).redirect('/login')
     } else {
-      return res.status(404).send('Error al registrar el usuario')
+      return res.render('registro', { error: 'Error al registrar el usuario' })
     }
   } catch (error) {
     console.error(error) // Mantén el registro del error en el servidor
@@ -221,49 +244,100 @@ app.post('/registro', async (req, res) => {
   }
 })
 
-// Ruta para login de usuario
+// Rutas para el login del usuario
+app.get('/login', (req, res) => {
+  res.render('login')
+})
 app.post('/login', async (req, res) => {
   const { usuario, contraseña } = req.body
+  // Verificar si todos los campos están completos
+  if (!usuario || !contraseña) {
+    return res.render('login', { error: 'Todos los campos son obligatorios' })
+  }
   try {
     // Verificar si las credenciales son correctas
     const resultadoValidacion = await validarCredenciales(usuario, contraseña)
     if (!resultadoValidacion.success) {
       return res.status(400).json({ message: resultadoValidacion.error })
     }
-    // Si las credenciales son válidas, generar un token
-    const token = jwt.sign({ usuario }, SECRET_KEY, { expiresIn: '1h' })
+
+    // Obtener el usuario desde la base de datos
+    const usuarioDB = await UsuarioModel.findOne({ usuario })
+
+    if (!usuarioDB) {
+      return res.status(404).json({ message: 'Usuario no encontrado' })
+    }
+
+    // Si las credenciales son válidas, generar un token con usuarioDB._id
+    const token = jwt.sign({ usuario: usuarioDB.usuario, email: usuarioDB.email }, SECRET_KEY, { expiresIn: '1h' })
     res.cookie('access_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 1000 * 60 * 60
-    }).json({ message: `Usuario ${usuario} logueado con éxito`, token })
+    })
+
+    req.session.user = {
+      usuario: usuarioDB.usuario,
+      email: usuarioDB.email
+    }
+
+    // Renderiza la vista del perfil usuario (ruta protegida)
+    return res.render('perfilUsuario', { usuario: req.session.user })
   } catch (error) {
     console.error(error)
-    return res.status(500).send({ error: 'Error interno del servidor' })
+    return res.status(500).render('login', { error: 'Error interno del servidor' })
   }
 })
 
-app.post('/logout', (req, res) => {
-  res.clearCookie('access_token').send({ message: 'Logout Successful' })
-})
-
-// Middleware para manejar rutas protegidas
+// Middleware para verificar si hay un token de sesión válido
 const verifyToken = (req, res, next) => {
+  // Verifica si existe un usuario en la sesión
   if (!req.session.user) {
+    // Si no hay usuario en la sesión, devuelve un error de acceso no autorizado
     return res.status(401).json({ error: 'Acceso no autorizado' })
   }
+  // Si hay un usuario en la sesión, permite continuar con la siguiente función de middleware
   next()
 }
 
-// -------- Ruta Protegida -------------
-app.get('/perfil', verifyToken, (req, res) => {
-  res.status(200).json({ message: `Bienvenido a tu perfil, ${req.session.user.usuario}` })
+// Ruta para el cierre de sesión
+app.post('/logout', verifyToken, (req, res) => {
+  try {
+    res.clearCookie('access_token')
+    res.redirect('/logout') // Redirige a la vista de confirmación de cierre de sesión
+  } catch (err) {
+    console.error('Error al cerrar sesión:', err)
+    res.status(500).send('Error interno al cerrar sesión')
+  }
+})
+
+// Ruta para la vista de confirmación de cierre de sesión
+app.get('/logout', (req, res) => {
+  res.render('logout')
+})
+
+// ----------- Rutas Protegidas ----------------
+// Perfil de usuario (requiere autenticación)
+app.get('/perfilUsuario', verifyToken, (req, res) => {
+  res.render('perfilUsuario', { usuario: req.session.user })
+})
+
+// Listado de productos (requiere autenticación)
+app.get('/listadoProductos', verifyToken, async (req, res) => {
+  try {
+    const productos = await ProductModel.find() || []
+
+    res.render('listadoProductos', { productos }) // Renderiza la vista del listado de productos
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: 'Error interno en el servidor' })
+  }
 })
 
 // Midleware para manejo de rutas incorrectas
 app.use((req, res, next) => {
-  res.status(404).json({ message: 'Ruta no encontrada' })
+  res.status(404).render('404')
 })
 
 app.listen(PORT, (req, res) => {

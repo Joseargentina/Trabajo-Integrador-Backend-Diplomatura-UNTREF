@@ -1,0 +1,27 @@
+<%- include('partials/head') %>
+    <h1>Productos de la inmobiliaria</h1>
+    <ul>
+        <% productos.forEach(producto=> { %>
+            <li>
+                <strong>Codigo:</strong>
+                <%= producto.codigo %><br>
+                    <strong>Nombre:</strong>
+                    <%= producto.nombre %><br>
+                        <strong>Precio:</strong>
+                        <%= producto.precio %><br>
+                            <strong>Categoria:</strong>
+                            <%= producto.categoria %>
+            </li>
+            <% }) %>
+    </ul>
+
+
+
+    <a href="/perfilUsuario">Volver a tu perfil</a>
+    <form id="logoutForm" action="/logout" method="POST" style="display:inline;">
+        <button type="submit">Cerrar sesión</button>
+    </form>
+
+
+
+    <%- include('partials/footer') %>
